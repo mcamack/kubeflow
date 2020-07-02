@@ -3,7 +3,7 @@ https://www.kubeflow.org/docs/aws/deploy/install-kubeflow/
 
 ## Create EKS Cluster
 install eksctl (https://github.com/weaveworks/eksctl)
-eksctl create cluster --name=KF1 --nodes=1 --node-type=m5.xlarge --version=1.14 --region=us-west-2
+eksctl create cluster --name=KF3 --nodes=1 --node-type=c5.4xlarge --version=1.15 --region=us-west-2
 
 ## Install aws-iam-authenticator
 https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
@@ -14,7 +14,7 @@ tar -xvf kfctl_v1.0.2_linux.tar.gz
 
 ## Create environment variables for deployment process:
 export PATH=$PATH:"/home/matt/kf/kfctl"
-export AWS_CLUSTER_NAME=KF1
+export AWS_CLUSTER_NAME=KF3
 export KF_NAME=${AWS_CLUSTER_NAME}
 export BASE_DIR=/home/matt/kf
 export KF_DIR=${BASE_DIR}/${KF_NAME}
@@ -44,6 +44,9 @@ aws iam list-roles \
 cd ${KF_DIR}
 kfctl apply -V -f ${CONFIG_FILE}
 
-#### Workaround to some failed steps, run this right after:
-wget https://raw.githubusercontent.com/kubeflow/manifests/v1.0-branch/kfdef/kfctl_k8s_istio.v1.0.2.yaml
-kfctl apply -V -f ./kfctl_k8s_istio.v1.0.2.yaml
+Wait for resources to be created:
+kubectl -n kubeflow get all
+
+## Access Central Dashboard:
+kubectl port-forward svc/istio-ingressgateway -n istio-system 8080:80
+localhost:8080
