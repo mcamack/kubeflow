@@ -20,5 +20,12 @@ Wait for resources to be created (~ 5min): `kubectl get po --all-namespaces -w`
 
 ## Access Central Dashboard
 
-kubectl port-forward svc/istio-ingressgateway -n istio-system 8080:80  
-localhost:8080
+`kubectl port-forward svc/istio-ingressgateway -n istio-system 8080:80  `  
+visit localhost:8080
+
+## Finish and delete resources
+
+```
+kfctl delete -f kfctl_aws.yaml
+eksctl delete cluster --name <cluster_name>
+```
