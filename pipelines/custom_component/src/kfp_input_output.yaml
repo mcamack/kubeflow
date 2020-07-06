@@ -1,0 +1,68 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: first-custom-component-pipeline-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 0.5.1, pipelines.kubeflow.org/pipeline_compilation_time: '2020-07-06T10:41:22.971303',
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "use custom component with
+      ECR custom docker image", "inputs": [{"name": "pparam1", "type": "one\ntwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten"}],
+      "name": "First custom component Pipeline"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 0.5.1}
+spec:
+  entrypoint: first-custom-component-pipeline
+  templates:
+  - name: component
+    container:
+      args: []
+      command: [python3, /pipelines/component/src/app.py, --input1-path, /tmp/inputs/input_1/data,
+        --param1, '5', --output1-path, /tmp/outputs/output_1/data]
+      image: 034557894042.dkr.ecr.us-west-2.amazonaws.com/kubeflow:latest
+    inputs:
+      artifacts:
+      - {name: pparam1, path: /tmp/inputs/input_1/data}
+    outputs:
+      artifacts:
+      - {name: component-output_1, path: /tmp/outputs/output_1/data}
+    metadata:
+      labels: {pipelines.kubeflow.org/pipeline-sdk-type: kfp}
+      annotations: {pipelines.kubeflow.org/component_spec: '{"inputs": [{"name": "input_1"},
+          {"name": "parameter_1"}], "outputs": [{"name": "output_1"}]}'}
+  - name: component-2
+    container:
+      args: []
+      command: [python3, /pipelines/component/src/app.py, --input1-path, /tmp/inputs/input_1/data,
+        --param1, '3', --output1-path, /tmp/outputs/output_1/data]
+      image: 034557894042.dkr.ecr.us-west-2.amazonaws.com/kubeflow:latest
+    inputs:
+      artifacts:
+      - {name: component-output_1, path: /tmp/inputs/input_1/data}
+    outputs:
+      artifacts:
+      - {name: component-2-output_1, path: /tmp/outputs/output_1/data}
+    metadata:
+      labels: {pipelines.kubeflow.org/pipeline-sdk-type: kfp}
+      annotations: {pipelines.kubeflow.org/component_spec: '{"inputs": [{"name": "input_1"},
+          {"name": "parameter_1"}], "outputs": [{"name": "output_1"}]}'}
+  - name: first-custom-component-pipeline
+    inputs:
+      artifacts:
+      - {name: pparam1}
+    dag:
+      tasks:
+      - name: component
+        template: component
+        arguments:
+          artifacts:
+          - {name: pparam1, from: '{{inputs.artifacts.pparam1}}'}
+      - name: component-2
+        template: component-2
+        dependencies: [component]
+        arguments:
+          artifacts:
+          - {name: component-output_1, from: '{{tasks.component.outputs.artifacts.component-output_1}}'}
+  arguments:
+    parameters:
+    - {name: pparam1}
+    artifacts:
+    - name: pparam1
+      raw: {data: '{{workflow.parameters.pparam1}}'}
+  serviceAccountName: pipeline-runner
