@@ -13,13 +13,13 @@ export CONFIG_FILE=${KF_DIR}/kfctl_aws.yaml
 
 #### Update $CONFIG_FILE
 sed -i'.bak' -e 's/kubeflow-aws/'"$AWS_CLUSTER_NAME"'/' ${CONFIG_FILE}
-NODEINSTANCEROLE=$(aws iam list-roles \
+NODE_INSTANCE_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \
     | select(.RoleName \
     | startswith(\"eksctl-$AWS_CLUSTER_NAME\") and contains(\"NodeInstanceRole\")) \
     .RoleName")
 # Update nodegroup role in CONFIG_FILE with the output of the command above
-sed -i'.bak' -e 's/eksctl-.*-xxxxxxx/'"$NODEINSTANCEROLE"'/' $CONFIG_FILE
+sed -i'.bak' -e 's/eksctl-.*-xxxxxxx/'"$NODE_INSTANCE_ROLE"'/' $CONFIG_FILE
 
 # ## Deploy Kubeflow
 cd ${KF_DIR}
