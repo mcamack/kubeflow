@@ -1,0 +1,21 @@
+inputs: #List of input specs. Each input spec is a map.
+  - { name: input_1 }
+  - { name: parameter_1 }
+outputs:
+  - { name: output_1 }
+implementation:
+  container:
+    image: 034557894042.dkr.ecr.us-west-2.amazonaws.com/kubeflow:latest
+    command: [
+        python3,
+        /pipelines/component/src/app.py,
+
+        --input1-path,
+        { inputPath: input_1 }, # Refers to the "Input 1" input
+
+        --param1,
+        { inputValue: parameter_1 }, # Refers to the "Parameter 1" input
+
+        --output1-path,
+        { outputPath: output_1 }, # Refers to the "Output 1" output
+      ]
